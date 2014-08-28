@@ -18,6 +18,12 @@ for an extra `*tune.Config` argument for configuring the TCP socket.
 
 * `SO_REUSEPORT`: `Config.Socket.ReuseAddr`
 
+
+## Supported Platforms
+
+* darwin
+* linux
+
 ## Thanks
 
 Based on steview's [post to go-nuts](https://groups.google.com/d/msg/golang-nuts/fJyW1GCx_6s/7s-PIHdj4RkJ).
