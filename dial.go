@@ -31,6 +31,11 @@ func TuneAndListenTCP(net string, laddr *TCPAddr, config *Config) (Listener, err
 		return nil, err
 	}
 
+	if err = setConfigListenerSockopts(s, config); err != nil {
+		closesocket(s)
+		return nil, err
+	}
+
 	if err = syscall.Bind(s, socketAddr); err != nil {
 		closesocket(s)
 		return nil, err
@@ -50,4 +55,14 @@ func TuneAndListenTCP(net string, laddr *TCPAddr, config *Config) (Listener, err
 	}
 
 	return socketListener, nil
+}
+
+func setConfigListenerSockopts(s int, config *Config) error {
+	if config.Socket.ReusePort {
+		if err := syscall.SetsockoptInt(s, syscall.SOL_SOCKET, SO_REUSEPORT, 1); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
