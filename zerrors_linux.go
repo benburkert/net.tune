@@ -3,5 +3,5 @@
 package tune
 
 var (
-	SO_REUSEPORT = 0xe
+	SO_REUSEPORT = 0x0F
 )
