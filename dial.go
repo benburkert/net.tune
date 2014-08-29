@@ -12,7 +12,6 @@ func TuneAndListenTCP(net string, laddr *TCPAddr, config *Config) (Listener, err
 
 	var socketAddr syscall.Sockaddr
 	if socketAddr, err = ipToSockaddr(family, laddr.IP, laddr.Port, laddr.Zone); err != nil {
-		panic(err)
 		return nil, err
 	}
 
