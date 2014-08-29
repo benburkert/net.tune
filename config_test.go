@@ -6,6 +6,8 @@ import (
 	"net/textproto"
 	"os"
 	"os/exec"
+	"strconv"
+	"syscall"
 	"testing"
 )
 
@@ -42,27 +44,9 @@ func TestSocketReusePort(t *testing.T) {
 
 	// Parent process
 
-	sockPath := fmt.Sprintf("/tmp/net.tune-%d-%s.sock", os.Getpid(), testName)
-	sockAddr, err := net.ResolveUnixAddr("unix", sockPath)
-	if err != nil {
-		t.Error(err)
-	}
-
-	sock, err := net.ListenUnix("unix", sockAddr)
-	if err != nil {
-		t.Error(err)
-	}
-
-	defer sock.Close()
-
 	conns := make([]*textproto.Conn, 5)
 	for i := 0; i < 5; i++ {
-		_, err := startChildOf(testName, sockPath)
-		if err != nil {
-			t.Error(err)
-		}
-
-		sConn, err := sock.Accept()
+		sConn, _, err := startChildOf(testName)
 		if err != nil {
 			t.Error(err)
 		}
@@ -94,29 +78,40 @@ func TestSocketReusePort(t *testing.T) {
 	}
 }
 
-func startChildOf(testName, sockPath string) (*exec.Cmd, error) {
+func startChildOf(testName string) (net.Conn, *exec.Cmd, error) {
+	fds, err := syscall.Socketpair(syscall.AF_UNIX, syscall.SOCK_STREAM, 0)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	conn, err := fdConn(fds[0])
+	if err != nil {
+		return nil, nil, err
+	}
+
 	cmd := exec.Command(os.Args[0], "-test.run="+testName)
 	cmd.Env = append([]string{
-		fmt.Sprintf("TEST_CHILD_SOCK=%s", sockPath),
+		fmt.Sprintf("TEST_CHILD_FD=%d", fds[1]),
 	})
 
-	err := cmd.Start()
+	err = cmd.Start()
 
-	return cmd, err
+	return conn, cmd, err
 }
 
 func isChildProcess() (bool, *textproto.Conn, error) {
-	sockPath := os.Getenv("TEST_CHILD_SOCK")
-	if sockPath == "" {
+	fds := os.Getenv("TEST_CHILD_FD")
+
+	if fds == "" {
 		return false, nil, nil
 	}
 
-	sockAddr, err := net.ResolveUnixAddr("unix", sockPath)
+	fd, err := strconv.Atoi(fds)
 	if err != nil {
 		return true, nil, err
 	}
 
-	sConn, err := net.DialUnix("unix", nil, sockAddr)
+	sConn, err := fdConn(fd)
 	if err != nil {
 		return true, nil, err
 	}
@@ -149,4 +144,9 @@ func childError(t *testing.T, conn *textproto.Conn, err error) {
 	conn.PrintfLine("E")
 	t.Error(err)
 	os.Exit(1)
+}
+
+func fdConn(fd int) (net.Conn, error) {
+	file := os.NewFile(uintptr(fd), "")
+	return net.FileConn(file)
 }
