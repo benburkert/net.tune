@@ -6,6 +6,26 @@ import (
 	"syscall"
 )
 
+// TuneAndListen announces on the local network address laddr.
+// The network net must be a stream-oriented network: "tcp", "tcp4",
+// "tcp6", "unix" or "unixpacket".
+// See Dial for the syntax of laddr.
+// The configuration config indicates additional socket options set on the
+// listener socket.
+func TuneAndListen(net, laddr string, config *Config) (Listener, error) {
+	switch net {
+	case "tcp", "tcp4", "tcp6":
+		tcpAddr, err := ResolveTCPAddr(net, laddr)
+		if err != nil {
+			return nil, err
+		}
+
+		return TuneAndListenTCP(net, tcpAddr, config)
+	default:
+		return nil, &OpError{Op: "listen", Net: net, Addr: nil, Err: &AddrError{Err: "unexpected address type", Addr: laddr}}
+	}
+}
+
 // TuneAndListenTCP announces on the TCP address laddr and returns a TCP
 // listener. The configuration config indicates additional socket options
 // set on the listener socket.
