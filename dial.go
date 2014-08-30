@@ -6,6 +6,9 @@ import (
 	"syscall"
 )
 
+// TuneAndListenTCP announces on the TCP address laddr and returns a TCP
+// listener. The configuration config indicates additional socket options
+// set on the listener socket.
 func TuneAndListenTCP(net string, laddr *TCPAddr, config *Config) (Listener, error) {
 	var err error
 	family, ipv6only := favoriteTCPAddrFamily(net, laddr, "listen")
