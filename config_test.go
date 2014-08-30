@@ -27,12 +27,7 @@ func TestSocketReusePort(t *testing.T) {
 			childError(t, conn, err)
 		}
 
-		tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
-		if err != nil {
-			childError(t, conn, err)
-		}
-
-		_, err = TuneAndListenTCP("tcp", tcpAddr, config)
+		_, err = TuneAndListen("tcp", addr, config)
 		if err != nil {
 			childError(t, conn, err)
 		}
