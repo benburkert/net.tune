@@ -1,4 +1,4 @@
-# net.tune
+# net.tune [![GoDoc](https://godoc.org/github.com/benburkert/net.tune?status.png)](http://godoc.org/github.com/benburkert/net.tune) [![Build Status](https://travis-ci.org/benburkert/net.tune.svg?branch=master)](https://travis-ci.org/benburkert/net.tune)
 
 Tunable TCP listeners for go 1.3. Provides extra options for TCP sockets.
 
