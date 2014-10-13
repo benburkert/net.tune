@@ -6,13 +6,16 @@ import (
 	"syscall"
 )
 
+//Tuner sets options on the file descriptor argument.
+type Tuner func(int) error
+
 // TuneAndListen announces on the local network address laddr.
 // The network net must be a stream-oriented network: "tcp", "tcp4",
 // "tcp6", "unix" or "unixpacket".
 // See Dial for the syntax of laddr.
 // The configuration config indicates additional socket options set on the
 // listener socket.
-func TuneAndListen(net, laddr string, config *Config) (Listener, error) {
+func TuneAndListen(net, laddr string, tuners ...Tuner) (Listener, error) {
 	switch net {
 	case "tcp", "tcp4", "tcp6":
 		tcpAddr, err := ResolveTCPAddr(net, laddr)
@@ -20,7 +23,7 @@ func TuneAndListen(net, laddr string, config *Config) (Listener, error) {
 			return nil, err
 		}
 
-		return TuneAndListenTCP(net, tcpAddr, config)
+		return TuneAndListenTCP(net, tcpAddr, tuners...)
 	default:
 		return nil, &OpError{Op: "listen", Net: net, Addr: nil, Err: &AddrError{Err: "unexpected address type", Addr: laddr}}
 	}
@@ -29,7 +32,7 @@ func TuneAndListen(net, laddr string, config *Config) (Listener, error) {
 // TuneAndListenTCP announces on the TCP address laddr and returns a TCP
 // listener. The configuration config indicates additional socket options
 // set on the listener socket.
-func TuneAndListenTCP(net string, laddr *TCPAddr, config *Config) (Listener, error) {
+func TuneAndListenTCP(net string, laddr *TCPAddr, tuners ...Tuner) (Listener, error) {
 	var err error
 	family, ipv6only := favoriteTCPAddrFamily(net, laddr, "listen")
 
@@ -53,9 +56,10 @@ func TuneAndListenTCP(net string, laddr *TCPAddr, config *Config) (Listener, err
 		return nil, err
 	}
 
-	if err = setConfigListenerSockopts(s, config); err != nil {
-		closesocket(s)
-		return nil, err
+	for _, tuner := range tuners {
+		if err := tuner(s); err != nil {
+			return nil, err
+		}
 	}
 
 	if err = syscall.Bind(s, socketAddr); err != nil {
@@ -77,14 +81,4 @@ func TuneAndListenTCP(net string, laddr *TCPAddr, config *Config) (Listener, err
 	}
 
 	return socketListener, nil
-}
-
-func setConfigListenerSockopts(s int, config *Config) error {
-	if config.Socket.ReusePort {
-		if err := syscall.SetsockoptInt(s, syscall.SOL_SOCKET, SO_REUSEPORT, 1); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

@@ -13,9 +13,6 @@ import (
 
 func TestSocketReusePort(t *testing.T) {
 	testName := "TestSocketReusePort"
-	config := &Config{}
-	config.Socket.ReusePort = true
-
 	if ok, conn, err := isChildProcess(); ok {
 		// Child process
 		if err != nil {
@@ -27,7 +24,7 @@ func TestSocketReusePort(t *testing.T) {
 			childError(t, conn, err)
 		}
 
-		_, err = TuneAndListen("tcp", addr, config)
+		_, err = TuneAndListen("tcp", addr, ReusePort)
 		if err != nil {
 			childError(t, conn, err)
 		}

@@ -5,17 +5,14 @@ Tunable TCP listeners for go 1.3. Provides extra options for TCP sockets.
 ## Overview
 
 The `tune.TuneAndListen` function works the same as `net.Listen` with
-an additional `*tune.Config` parameter for configuring the TCP socket.
+[self-referential functions for options](http://commandcenter.blogspot.nl/2014/01/self-referential-functions-and-design.html).
 
-    config := &Config{}
-    config.Socket.ReusePort = true // sets SO_REUSEPORT on the socket
-
-    listener, err := tune.TuneAndListen("tcp", "0.0.0.0:80", config)
+    // sets SO_REUSEPORT on the socket
+    listener, err := tune.TuneAndListen("tcp", "0.0.0.0:80", tune.ReusePort)
 
 ## Supported Socket Options
 
-* `SO_REUSEPORT`: `Config.Socket.ReuseAddr`
-
+* `SO_REUSEPORT`: `ReusePort`
 
 ## Supported Platforms
 
