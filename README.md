@@ -1,6 +1,6 @@
 # net.tune [![GoDoc](https://godoc.org/github.com/benburkert/net.tune?status.png)](http://godoc.org/github.com/benburkert/net.tune) [![Build Status](https://travis-ci.org/benburkert/net.tune.svg?branch=master)](https://travis-ci.org/benburkert/net.tune)
 
-Tunable TCP listeners for go 1.3. Provides extra options for TCP sockets.
+Tunable TCP listeners for go 1.3+. Provides extra options for TCP sockets.
 
 ## Overview
 
@@ -13,6 +13,7 @@ The `tune.TuneAndListen` function works the same as `net.Listen` with
 ## Supported Socket Options
 
 * `SO_REUSEPORT`: `ReusePort`
+* `TCP_FASTOPEN`: `FastOpen`
 
 ## Supported Platforms
 
