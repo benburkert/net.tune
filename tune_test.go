@@ -2,7 +2,9 @@ package tune
 
 import (
 	"fmt"
+	"log"
 	"net"
+	"net/http"
 	"net/textproto"
 	"os"
 	"os/exec"
@@ -10,6 +12,30 @@ import (
 	"syscall"
 	"testing"
 )
+
+func ExampleFastOpen() {
+	l, err := TuneAndListen("tcp", ":8080", FastOpen(8))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var h http.Handler
+	// ...
+
+	log.Fatal(http.Serve(l, h))
+}
+
+func ExampleReusePort() {
+	l, err := TuneAndListen("tcp", ":8080", ReusePort)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var h http.Handler
+	// ...
+
+	log.Fatal(http.Serve(l, h))
+}
 
 func TestSocketReusePort(t *testing.T) {
 	testName := "TestSocketReusePort"
