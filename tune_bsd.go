@@ -14,3 +14,5 @@ func FastOpen(qlen int) Tuner {
 		return errors.New("OS does not support TCP_FASTOPEN")
 	}
 }
+
+var dataready = [256]byte{'d', 'a', 't', 'a', 'r', 'e', 'a', 'd', 'y'}

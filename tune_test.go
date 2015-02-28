@@ -11,7 +11,20 @@ import (
 	"strconv"
 	"syscall"
 	"testing"
+	"time"
 )
+
+func ExampleDeferAccept() {
+	l, err := TuneAndListen("tcp", ":8080", DeferAccept())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var h http.Handler
+	// ...
+
+	log.Fatal(http.Serve(l, h))
+}
 
 func ExampleFastOpen() {
 	l, err := TuneAndListen("tcp", ":8080", FastOpen(8))
@@ -167,4 +180,42 @@ func childError(t *testing.T, conn *textproto.Conn, err error) {
 func fdConn(fd int) (net.Conn, error) {
 	file := os.NewFile(uintptr(fd), "")
 	return net.FileConn(file)
+}
+
+func testDeferAccept(t *testing.T) {
+	l, err := TuneAndListen("tcp", ":0", DeferAccept())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	acceptc := make(chan struct{})
+	go func() {
+		if _, err := l.Accept(); err != nil {
+			t.Fatal(err)
+		}
+		close(acceptc)
+
+		if err := l.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	conn, err := net.Dial("tcp", l.Addr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case <-acceptc:
+		t.Fatal("listener given conn before client sent data")
+	case <-time.After(10 * time.Millisecond):
+	}
+
+	conn.Write([]byte("GET / HTTP/1.1\r\n\r\n"))
+
+	select {
+	case <-acceptc:
+	case <-time.After(1 * time.Second):
+		t.Error("listener timeout")
+	}
 }
