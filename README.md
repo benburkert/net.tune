@@ -14,11 +14,13 @@ The `tune.TuneAndListen` function works the same as `net.Listen` with
 
 * `SO_REUSEPORT`: `ReusePort`
 * `TCP_FASTOPEN`: `FastOpen`
+* `TCP_DEFER_ACCEPT`/`SO_ACCEPTFILTER`: `DeferAccept`
 
 ## Supported Platforms
 
 * darwin
 * linux
+* bsd (untested)
 
 ## Thanks
 
